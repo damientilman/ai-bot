@@ -3,7 +3,7 @@ k"use client";
 import React, { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { User, Mic, Send, Plus } from "lucide-react";
+import { Mic, Send, Plus } from "lucide-react";
 
 export default function Page() {
   const [message, setMessage] = useState("");
@@ -90,7 +90,9 @@ export default function Page() {
         ))}
 
         {loading && (
-          <div className="text-center text-sm text-gray-400 animate-pulse">OutboundGPT est en train de rédiger...</div>
+          <div className="text-center text-sm text-gray-400 animate-pulse">
+            OutboundGPT est en train de rédiger...
+          </div>
         )}
       </main>
 
