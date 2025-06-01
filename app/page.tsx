@@ -1,4 +1,4 @@
-"use client";
+k"use client";
 
 import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
@@ -6,7 +6,7 @@ import remarkGfm from "remark-gfm";
 
 export default function Page() {
   const [message, setMessage] = useState("");
-  const [history, setHistory] = useState([{ role: 'assistant', content: "**Bienvenue chez Outbound Brain.** Quelle est la *thématique* de votre campagne aujourd’hui ? 🎯" }]);
+  const [history, setHistory] = useState([{ role: 'assistant', content: "**Bienvenue dans l'Outbound Brain.** Quelle est la *thématique* de votre campagne aujourd’hui ? 🎯" }]);
   const [loading, setLoading] = useState(false);
   const [temperature, setTemperature] = useState(0.7);
   const [topP, setTopP] = useState(0.95);
@@ -50,7 +50,7 @@ export default function Page() {
   }, [history, animatedResponse]);
 
   return (
-    <div className="flex flex-col h-screen bg-white dark:bg-black text-black dark:text-white">
+    <div className="flex flex-col h-dvh bg-white dark:bg-black text-black dark:text-white overflow-hidden">
       <header className="p-4 text-center border-b border-gray-200 dark:border-gray-800 font-bold text-lg sm:text-2xl tracking-tight">
         Outbound Brain
       </header>
@@ -81,7 +81,7 @@ export default function Page() {
         )}
       </main>
 
-      <footer className="border-t border-gray-200 dark:border-gray-800 p-4 w-full max-w-3xl mx-auto">
+      <footer className="border-t border-gray-200 dark:border-gray-800 p-4 w-full max-w-3xl mx-auto pb-10 sm:pb-6">
         <form onSubmit={handleSubmit} className="flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row gap-2 items-center">
             <textarea
