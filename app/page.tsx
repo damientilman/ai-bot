@@ -1,4 +1,4 @@
-k"use client";
+"use client";
 
 import React, { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
@@ -6,7 +6,13 @@ import remarkGfm from "remark-gfm";
 
 export default function Page() {
   const [message, setMessage] = useState("");
-  const [history, setHistory] = useState([{ role: 'assistant', content: "**Bienvenue dans l'Outbound Brain.** Quelle est la *thématique* de votre campagne aujourd’hui ? 🎯" }]);
+  const [history, setHistory] = useState([
+    {
+      role: "assistant",
+      content:
+        "**Bienvenue dans l'Outbound Brain.** Quelle est la *thématique* de votre campagne aujourd’hui ? 🎯",
+    },
+  ]);
   const [loading, setLoading] = useState(false);
   const [temperature, setTemperature] = useState(0.7);
   const [topP, setTopP] = useState(0.95);
@@ -17,7 +23,7 @@ export default function Page() {
     e.preventDefault();
     if (!message.trim()) return;
 
-    setHistory((prev) => [...prev, { role: 'user', content: message }]);
+    setHistory((prev) => [...prev, { role: "user", content: message }]);
     setMessage("");
     setLoading(true);
     setAnimatedResponse("");
@@ -37,7 +43,7 @@ export default function Page() {
         current += fullReply[i];
         setAnimatedResponse(current);
       }
-      setHistory((prev) => [...prev, { role: 'assistant', content: fullReply }]);
+      setHistory((prev) => [...prev, { role: "assistant", content: fullReply }]);
     } catch (err) {
       console.error("Erreur frontend :", err);
     } finally {
@@ -46,7 +52,10 @@ export default function Page() {
   };
 
   useEffect(() => {
-    containerRef.current?.scrollTo({ top: containerRef.current.scrollHeight, behavior: "smooth" });
+    containerRef.current?.scrollTo({
+      top: containerRef.current.scrollHeight,
+      behavior: "smooth",
+    });
   }, [history, animatedResponse]);
 
   return (
@@ -55,7 +64,10 @@ export default function Page() {
         Outbound Brain
       </header>
 
-      <main ref={containerRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-6 w-full max-w-3xl mx-auto">
+      <main
+        ref={containerRef}
+        className="flex-1 overflow-y-auto px-4 py-4 space-y-6 w-full max-w-3xl mx-auto"
+      >
         {history.map((msg, i) => (
           <div
             key={i}
@@ -63,11 +75,14 @@ export default function Page() {
           >
             <div
               className={`rounded-2xl px-4 py-3 text-sm w-full sm:w-auto shadow-md whitespace-pre-wrap leading-relaxed ${
-                msg.role === 'user'
-                  ? 'bg-emerald-500 text-white self-end text-right' : 'bg-gray-100 dark:bg-gray-800 text-black dark:text-white'
+                msg.role === "user"
+                  ? "bg-emerald-500 text-white self-end text-right"
+                  : "bg-gray-100 dark:bg-gray-800 text-black dark:text-white"
               }`}
             >
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {msg.content}
+              </ReactMarkdown>
             </div>
           </div>
         ))}
@@ -75,7 +90,9 @@ export default function Page() {
         {loading && (
           <div className="flex justify-center">
             <div className="rounded-2xl px-4 py-3 text-sm w-full sm:w-auto bg-gray-200 dark:bg-gray-700 text-black dark:text-white animate-pulse">
-              <ReactMarkdown>{animatedResponse || "OutboundGPT est en train de rédiger..."}</ReactMarkdown>
+              <ReactMarkdown>
+                {animatedResponse || "OutboundGPT est en train de rédiger..."}
+              </ReactMarkdown>
             </div>
           </div>
         )}
@@ -99,14 +116,31 @@ export default function Page() {
               Envoyer
             </button>
           </div>
+
           <div className="flex flex-col sm:flex-row justify-between gap-4 text-xs text-gray-500 dark:text-gray-400">
             <label className="flex items-center gap-2 w-full">
               Température : {temperature}
-              <input className="flex-1" type="range" min="0" max="1" step="0.01" value={temperature} onChange={(e) => setTemperature(parseFloat(e.target.value))} />
+              <input
+                className="flex-1"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={temperature}
+                onChange={(e) => setTemperature(parseFloat(e.target.value))}
+              />
             </label>
             <label className="flex items-center gap-2 w-full">
               Top-P : {topP}
-              <input className="flex-1" type="range" min="0" max="1" step="0.01" value={topP} onChange={(e) => setTopP(parseFloat(e.target.value))} />
+              <input
+                className="flex-1"
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={topP}
+                onChange={(e) => setTopP(parseFloat(e.target.value))}
+              />
             </label>
           </div>
         </form>
