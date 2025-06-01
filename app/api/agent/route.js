@@ -1,90 +1,39 @@
-"use client";
+import OpenAI from 'openai';
 
-import React, { useState, useRef, useEffect } from "react";
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-export default function Page() {
-  const [message, setMessage] = useState("");
-  const [history, setHistory] = useState<{ role: string; content: string; timestamp: string }[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [temperature, setTemperature] = useState(0.7);
-  const [topP, setTopP] = useState(0.95);
-  const containerRef = useRef<HTMLDivElement>(null);
+export async function POST(req) {
+  try {
+    const body = await req.json();
+    const { message, temperature, top_p } = body;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!message.trim()) return;
+    const completion = await openai.chat.completions.create({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'system',
+          content: `Tu es OutboundGPT, tu es un expert en outbound marketing B2C et tu crées et optimises les subject lines, pre-headers, introductions et blocs de contenu qui te seront donnés. Tu travailles pour Newpharma, une entreprise de pharmacie en ligne. Tu donnes des réponses claires, orientées résultats afin de rendre des copy modernes, captivants et adaptés à nos cibles (GenZ, Jeunes Mamans, Seniors qui aiment prendre soin de leur santé). Tu veilles à demander à chaque démarrage de conversation la thématique de la campagne ciblée par l'utilisateur et tu fais en sorte d'améliorer ou de créer ce qui est demandé. Réponds dans un style expert, avenant, proche des gens mais en restant professionnel et accessible. Lorsque tu développes des hooks qu'ils soient en subject line, pre-header, intro, ou autre bloc, veilles toujours à utiliser des biais psychologiques marketing forts pour développer l'attractivité de la thématique et/ou du bloc demandé. Tu dois également faire attention à utiliser les éléments de scarcity, urgency ou fomo lorsque possible. Fais en sorte de respecter le langage pharmaceutique en n'utilisant pas de mots qui sur-promettent, faussent la perception réelle des produits ou de la thématique mise en avant.`
+        },
+        { role: 'user', content: message },
+      ],
+      temperature: temperature ?? 0.7,
+      top_p: top_p ?? 0.95,
+      max_tokens: 800,
+    });
 
-    const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const userMessage = { role: 'user', content: message, timestamp: now };
-    setHistory((prev) => [...prev, userMessage]);
-    setMessage("");
-    setLoading(true);
+    const reply = completion.choices?.[0]?.message?.content || 'Erreur de réponse du modèle';
 
-    try {
-      const res = await fetch("/api/agent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, temperature, top_p: topP }),
-      });
-
-      const text = await res.text();
-      const data = JSON.parse(text);
-      const botReply = { role: 'assistant', content: data.reply || "Pas de réponse reçue.", timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) };
-      setHistory((prev) => [...prev, botReply]);
-    } catch (err) {
-      console.error("Erreur frontend :", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    containerRef.current?.scrollTo({ top: containerRef.current.scrollHeight, behavior: "smooth" });
-  }, [history, loading]);
-
-  return (
-    <div className="flex flex-col min-h-screen bg-white dark:bg-black text-black dark:text-white font-sans">
-      <header className="sticky top-0 z-10 bg-gradient-to-b from-white/90 to-transparent dark:from-black/90 backdrop-blur-sm py-10 text-center text-5xl font-bold tracking-tight opacity-90">
-        <div className="animate-fade-out-scroll">Outbound Brain</div>
-      </header>
-
-      <main ref={containerRef} className="flex-1 overflow-y-auto px-4 pb-40">
-        <div className="max-w-2xl mx-auto space-y-4">
-          {history.map((msg, i) => (
-            <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-              <div className={`rounded-xl px-4 py-3 text-sm max-w-[75%] whitespace-pre-wrap ${
-                msg.role === 'user'
-                  ? 'bg-neutral-200 dark:bg-neutral-800 text-black dark:text-white'
-                  : 'bg-gray-100 dark:bg-neutral-900 text-black dark:text-white border border-neutral-300 dark:border-neutral-700'
-              }`}>
-                {msg.content}
-              </div>
-            </div>
-          ))}
-          {loading && (
-            <div className="text-sm text-neutral-500 dark:text-neutral-400">OutboundGPT est en train de rédiger...</div>
-          )}
-        </div>
-      </main>
-
-      <footer className="fixed bottom-0 left-0 right-0 bg-white dark:bg-black border-t border-neutral-200 dark:border-neutral-800 px-4 py-4">
-        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto flex items-center gap-2">
-          <textarea
-            rows={1}
-            className="flex-1 resize-none rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white"
-            placeholder="Écris un message..."
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-          />
-          <button
-            type="submit"
-            disabled={loading || !message.trim()}
-            className="bg-black dark:bg-white text-white dark:text-black rounded-lg px-4 py-2 text-sm font-medium hover:opacity-90 disabled:opacity-50"
-          >
-            Envoyer
-          </button>
-        </form>
-      </footer>
-    </div>
-  );
+    return new Response(JSON.stringify({ reply }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Erreur serveur :', error);
+    return new Response(JSON.stringify({ error: 'Erreur interne' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 }
