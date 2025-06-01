@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from "react";
 
 export default function Page() {
   const [message, setMessage] = useState("");
-  const [history, setHistory] = useState([{ role: 'assistant', content: "Bienvenue chez Outbound Brain. Quelle est la thématique de votre campagne aujourd’hui ?" }]);
+  const [history, setHistory] = useState([{ role: 'assistant', content: "Quelle est la thématique de votre campagne aujourd’hui ?" }]);
   const [loading, setLoading] = useState(false);
   const [temperature, setTemperature] = useState(0.7);
   const [topP, setTopP] = useState(0.95);
