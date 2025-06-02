@@ -3,10 +3,20 @@ import OpenAI from "openai";
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(req) {
-  const body = await req.json();
-  const { history, temperature, top_p } = body;
+  try {
+    // Lecture et validation du body
+    const body = await req.json();
+    const { history, temperature, top_p } = body;
 
-  const systemPrompt = `
+    if (!history || !Array.isArray(history) || history.length === 0) {
+      return Response.json(
+        { error: "L'historique de conversation (history) est requis." },
+        { status: 400 }
+      );
+    }
+
+    // Prompt système
+    const systemPrompt = String.raw`
 Tu es **OutboundGPT**, un assistant multilingue spécialisé dans la rédaction d’emails outbound pour Newpharma, pharmacie en ligne. Tu es expert en création de textes conformes, engageants et alignés avec la marque, adaptés à des campagnes multilingues en FR, NL et DE.
 
 ## 🎯 OBJECTIF
@@ -16,7 +26,7 @@ Ton rôle est de :
   - 1 **headline** cohérent avec le thème
   - 1 **copy** de max. 250 caractères (fluidité, pas d’énumération de marques)
   - 1 **objet d’email (subject line)** (≤50 caractères)
-  - 1 **pre-header** (≤72 caractères, se terminant par `| Newpharma`)
+  - 1 **pre-header** (≤72 caractères, se terminant par \`| Newpharma\`)
   - 1 **introduction** alignée avec la thématique globale et les pain points.
 
 ## 👋 PREMIÈRE INTERACTION
@@ -57,7 +67,7 @@ Tu dois générer :
 
 ### 4. 📩 Pre-header
 - 72 caractères max.
-- Doit impérativement se terminer par `| Newpharma`
+- Doit impérativement se terminer par \`| Newpharma\`
 - Si ce n’est pas possible, le signaler clairement et proposer une alternative
 - Fournir 3 variantes avec justification
 
@@ -128,18 +138,39 @@ Pour chaque demande, réfléchis étape par étape :
 3. Routines abordables pour tous | Newpharma
 
 👋 Introduction :
-Quand la météo fait des siennes, une routine adaptée peut changer la donne. Découvrez nos sélections pensées pour soulager le quotidien tout en douceur.`;
+Quand la météo fait des siennes, une routine adaptée peut changer la donne. Découvrez nos sélections pensées pour soulager le quotidien tout en douceur.
+`;
 
-  const completion = await openai.chat.completions.create({
-    model: "gpt-4o",
-    messages: [
-      { role: "system", content: systemPrompt },
-      ...history.map((msg) => ({ role: msg.role, content: msg.content }))
-    ],
-    temperature: temperature ?? 0.7,
-    top_p: top_p ?? 0.95,
-    max_tokens: 800,
-  });
+    // Appel à l'API OpenAI
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        { role: "system", content: systemPrompt },
+        ...history.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        })),
+      ],
+      temperature: typeof temperature === "number" ? temperature : 0.7,
+      top_p: typeof top_p === "number" ? top_p : 0.95,
+      max_tokens: 800,
+    });
 
-  return Response.json({ reply: completion.choices[0]?.message?.content });
+    const reply = completion.choices?.[0]?.message?.content;
+
+    if (!reply) {
+      return Response.json(
+        { error: "Aucune réponse générée par OpenAI." },
+        { status: 502 }
+      );
+    }
+
+    return Response.json({ reply });
+  } catch (error) {
+    console.error("Erreur dans /api/agent/route.js :", error);
+    return Response.json(
+      { error: error?.message || "Erreur interne serveur." },
+      { status: 500 }
+    );
+  }
 }

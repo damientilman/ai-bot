@@ -34,16 +34,23 @@ export default function Page() {
 
     try {
       const res = await fetch("/api/agent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          history: updatedHistory,
-          temperature,
-          top_p: topP,
-        }),
-      });
-      const data = await res.json();
-      setHistory((prev) => [...prev, { role: "assistant", content: data.reply }]);
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    history: updatedHistory,
+    temperature,
+    top_p: topP,
+  }),
+});
+
+if (!res.ok) {
+  const errorText = await res.text();
+  console.error("Erreur côté API :", errorText);
+  throw new Error("Erreur côté agent : " + res.status);
+}
+
+const data = await res.json();
+setHistory((prev) => [...prev, { role: "assistant", content: data.reply }]);
     } catch (err) {
       console.error("Erreur:", err);
     } finally {
