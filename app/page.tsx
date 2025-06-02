@@ -1,10 +1,9 @@
-
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Mic, Send, Plus } from "lucide-react";
+import { Mic, Send, Plus, Image } from "lucide-react";
 
 export default function Page() {
   const [message, setMessage] = useState("");
@@ -14,6 +13,7 @@ export default function Page() {
   const [topP, setTopP] = useState(0.95);
   const [greeting, setGreeting] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const suggestions = [
     "Aide moi à créer une campagne"
@@ -42,6 +42,13 @@ export default function Page() {
     }
   };
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setHistory((prev) => [...prev, { role: "user", content: `![image](${URL.createObjectURL(file)})` }]);
+    }
+  };
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [history]);
@@ -56,14 +63,18 @@ export default function Page() {
       <main ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
         {greeting && (
           <div className="text-center mt-12">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-pink-500 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 bg-clip-text text-transparent">
               Bienvenue sur Outbound Brain
             </h1>
             <div className="flex flex-wrap justify-center mt-6 gap-3">
               {suggestions.map((s, i) => (
                 <button
                   key={i}
-                  onClick={() => setMessage(s)}
+                  onClick={() => {
+                    setMessage(s);
+                    setGreeting(false);
+                    setHistory((prev) => [...prev, { role: "user", content: s }]);
+                  }}
                   className="bg-neutral-800 px-4 py-2 rounded-full text-sm hover:bg-neutral-700"
                 >
                   {s}
@@ -97,7 +108,16 @@ export default function Page() {
       <footer className="border-t border-neutral-800 p-4">
         <form onSubmit={handleSubmit} className="flex flex-col gap-2 max-w-3xl mx-auto">
           <div className="flex items-center gap-2 bg-neutral-900 rounded-full px-4 py-2">
-            <Plus size={18} />
+            <button type="button" onClick={() => fileInputRef.current?.click()}>
+              <Image size={18} className="text-white" />
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+            />
             <input
               type="text"
               className="flex-1 bg-transparent text-white placeholder-gray-500 text-sm focus:outline-none"
