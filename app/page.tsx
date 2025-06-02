@@ -1,3 +1,8 @@
+/*
+  This code will update the existing Page.tsx to mimic the ChatGPT UI as closely as possible
+  with centered chat bubbles, fade-in animations, smooth scroll, and proper responsiveness.
+*/
+
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
@@ -40,7 +45,6 @@ export default function Page() {
     }
 
     const userMessage = { role: "user", content };
-
     const updatedHistory = [...history, userMessage];
     setHistory(updatedHistory);
     setMessage("");
@@ -56,7 +60,7 @@ export default function Page() {
         body: JSON.stringify({
           history: updatedHistory,
           temperature,
-          top_p: topP
+          top_p: topP,
         }),
       });
       const data = await res.json();
@@ -86,24 +90,17 @@ export default function Page() {
   }, [history]);
 
   return (
-    <div className="flex flex-col h-dvh bg-black text-white">
-      <header className="flex items-center justify-between px-4 py-2 border-b border-neutral-800">
-        <button
-          onClick={() => window.location.reload()}
-          className="font-semibold text-lg hover:underline cursor-pointer"
-        >
-          Outbound Brain
-        </button>
-        <span className="text-xs bg-neutral-800 px-2 py-1 rounded-full">GPT 4o</span>
+    <div className="flex flex-col h-screen bg-zinc-950 text-white">
+      <header className="flex justify-between items-center px-6 py-4 border-b border-zinc-800">
+        <h1 className="text-xl font-semibold tracking-tight">Outbound Brain</h1>
+        <span className="text-xs bg-zinc-800 px-3 py-1 rounded-full">GPT 4o</span>
       </header>
 
-      <main ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
+      <main ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
         {greeting && (
-          <div className="text-center mt-12">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 via-pink-500 to-red-500 bg-clip-text text-transparent">
-              Bienvenue sur Outbound Brain
-            </h1>
-            <div className="flex flex-wrap justify-center mt-6 gap-3">
+          <div className="text-center mt-10">
+            <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-pink-500">Bienvenue sur Outbound Brain</h2>
+            <div className="mt-4 flex justify-center gap-3">
               {suggestions.map((s, i) => (
                 <button
                   key={i}
@@ -111,7 +108,7 @@ export default function Page() {
                     setMessage(s);
                     sendMessage();
                   }}
-                  className="bg-neutral-800 px-4 py-2 rounded-full text-sm hover:bg-neutral-700"
+                  className="bg-zinc-800 px-4 py-2 rounded-full text-sm hover:bg-zinc-700"
                 >
                   {s}
                 </button>
@@ -121,20 +118,18 @@ export default function Page() {
         )}
 
         {history.map((msg, i) => (
-          <div key={i} className="flex justify-center">
+          <div key={i} className={`flex justify-center animate-fade-in`}>
             <div
-              className={`w-full max-w-2xl px-4 py-3 rounded-xl text-sm whitespace-pre-wrap leading-relaxed ${
+              className={`w-full max-w-2xl px-5 py-4 rounded-xl text-sm leading-relaxed shadow-md whitespace-pre-wrap ${
                 msg.role === "user"
-                  ? "bg-emerald-500 text-white text-right self-end"
-                  : "bg-neutral-800 text-white"
+                  ? "bg-emerald-600 text-white self-end"
+                  : "bg-zinc-800 text-white"
               }`}
             >
               {Array.isArray(msg.content)
                 ? msg.content.map((block: any, idx: number) =>
                     block.type === "text" ? (
-                      <ReactMarkdown key={idx} remarkPlugins={[remarkGfm]}>
-                        {block.text}
-                      </ReactMarkdown>
+                      <ReactMarkdown key={idx} remarkPlugins={[remarkGfm]}>{block.text}</ReactMarkdown>
                     ) : (
                       <img key={idx} src={block.image_url.url} alt="envoyée" className="mt-2 rounded" />
                     )
@@ -144,17 +139,13 @@ export default function Page() {
           </div>
         ))}
 
-        {loading && (
-          <div className="text-center text-sm text-gray-400 animate-pulse">
-            OutboundGPT est en train de rédiger...
-          </div>
-        )}
+        {loading && <div className="text-center text-sm text-zinc-500 animate-pulse">OutboundGPT rédige…</div>}
       </main>
 
-      <footer className="border-t border-neutral-800 p-4">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-2 max-w-3xl mx-auto">
+      <footer className="border-t border-zinc-800 px-4 py-6">
+        <form onSubmit={handleSubmit} className="max-w-3xl mx-auto flex flex-col gap-3">
           {imagePreview && (
-            <div className="flex items-center gap-2 text-xs text-white mb-1">
+            <div className="flex items-center gap-2 text-sm text-white mb-2">
               <img src={imagePreview} alt="Aperçu" className="w-16 h-16 rounded object-cover" />
               <button
                 type="button"
@@ -169,7 +160,7 @@ export default function Page() {
             </div>
           )}
 
-          <div className="flex items-center gap-2 bg-neutral-900 rounded-full px-4 py-2">
+          <div className="flex items-center gap-2 bg-zinc-900 rounded-full px-4 py-3 shadow-md">
             <button type="button" onClick={() => fileInputRef.current?.click()}>
               <ImageIcon size={18} className="text-white" />
             </button>
@@ -183,14 +174,13 @@ export default function Page() {
 
             <input
               type="text"
-              className="flex-1 bg-transparent text-white placeholder-gray-500 text-sm focus:outline-none"
-              placeholder="Ask Outbound Brain..."
+              className="flex-1 bg-transparent text-white placeholder-zinc-500 text-sm focus:outline-none"
+              placeholder="Pose ta question à Outbound Brain..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               disabled={loading}
             />
 
-            <Mic size={18} className="text-gray-400" />
             <button type="submit" disabled={loading}>
               <Send size={18} className="text-white" />
             </button>
