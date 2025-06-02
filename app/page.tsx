@@ -13,23 +13,40 @@ export default function Page() {
   const [topP, setTopP] = useState(0.95);
   const [greeting, setGreeting] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
-  const [attachedImage, setAttachedImage] = useState<string | null>(null);
+  const [attachedFile, setAttachedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const suggestions = ["Aide moi à créer une campagne"];
 
-  const sendMessage = async (userMessage: string, image?: string) => {
-    let finalMessage = userMessage;
-    if (image) {
-      finalMessage += `\n\n![image](${image})`;
+  const getBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const sendMessage = async () => {
+    if (!message.trim() && !attachedFile) return;
+
+    const content: any[] = [];
+    if (message.trim()) content.push({ type: "text", text: message });
+    if (attachedFile) {
+      const base64 = await getBase64(attachedFile);
+      content.push({ type: "image_url", image_url: { url: base64 } });
     }
 
-    const updatedHistory = [...history, { role: "user", content: finalMessage }];
+    const userMessage = { role: "user", content };
+
+    const updatedHistory = [...history, userMessage];
     setHistory(updatedHistory);
     setMessage("");
-    setAttachedImage(null);
+    setAttachedFile(null);
+    setImagePreview(null);
     setLoading(true);
     setGreeting(false);
 
@@ -40,7 +57,7 @@ export default function Page() {
         body: JSON.stringify({
           history: updatedHistory,
           temperature,
-          top_p: topP,
+          top_p: topP
         }),
       });
       const data = await res.json();
@@ -54,23 +71,19 @@ export default function Page() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim() && !attachedImage) return;
-    await sendMessage(message, attachedImage ?? undefined);
+    await sendMessage();
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      setAttachedImage(previewUrl);
+      setAttachedFile(file);
+      setImagePreview(URL.createObjectURL(file));
     }
   };
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({
-      top: scrollRef.current.scrollHeight,
-      behavior: "smooth",
-    });
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [history]);
 
   return (
@@ -95,7 +108,10 @@ export default function Page() {
               {suggestions.map((s, i) => (
                 <button
                   key={i}
-                  onClick={() => sendMessage(s)}
+                  onClick={() => {
+                    setMessage(s);
+                    sendMessage();
+                  }}
                   className="bg-neutral-800 px-4 py-2 rounded-full text-sm hover:bg-neutral-700"
                 >
                   {s}
@@ -114,9 +130,17 @@ export default function Page() {
                   : "bg-neutral-800 text-white"
               }`}
             >
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                {msg.content}
-              </ReactMarkdown>
+              {Array.isArray(msg.content)
+                ? msg.content.map((block: any, idx: number) =>
+                    block.type === "text" ? (
+                      <ReactMarkdown key={idx} remarkPlugins={[remarkGfm]}>
+                        {block.text}
+                      </ReactMarkdown>
+                    ) : (
+                      <img key={idx} src={block.image_url.url} alt="envoyée" className="mt-2 rounded" />
+                    )
+                  )
+                : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>}
             </div>
           </div>
         ))}
@@ -159,13 +183,16 @@ export default function Page() {
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-2 max-w-3xl mx-auto">
-          {attachedImage && (
+          {imagePreview && (
             <div className="flex items-center gap-2 text-xs text-white mb-1">
-              <img src={attachedImage} alt="Aperçu" className="w-16 h-16 rounded object-cover" />
+              <img src={imagePreview} alt="Aperçu" className="w-16 h-16 rounded object-cover" />
               <button
                 type="button"
                 className="text-red-400 hover:text-red-600 flex items-center gap-1"
-                onClick={() => setAttachedImage(null)}
+                onClick={() => {
+                  setAttachedFile(null);
+                  setImagePreview(null);
+                }}
               >
                 <X size={16} /> Supprimer l’image
               </button>

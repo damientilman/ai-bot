@@ -12,7 +12,7 @@ export async function POST(req) {
     const messages = [
       {
         role: "system",
-        content: "Tu es OutboundGPT, un expert marketing qui peut aussi interpréter des images. Tu travailles pour Newpharma. Donne des conseils précis, utilise les images pour comprendre le contexte ou le message.",
+        content: "Tu es OutboundGPT, un expert en marketing et capable d'analyser des images. Si une image est envoyée, analyse-la en contexte avec le texte.",
       },
       ...history
     ];
