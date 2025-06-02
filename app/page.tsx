@@ -3,16 +3,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Mic, Send, Image as ImageIcon, Settings, X } from "lucide-react";
+import { Mic, Send, Image as ImageIcon, X } from "lucide-react";
 
 export default function Page() {
   const [message, setMessage] = useState("");
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [temperature, setTemperature] = useState(0.7);
-  const [topP, setTopP] = useState(0.95);
+  const [temperature] = useState(0.7);
+  const [topP] = useState(0.95);
   const [greeting, setGreeting] = useState(true);
-  const [showSettings, setShowSettings] = useState(false);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -152,36 +151,7 @@ export default function Page() {
         )}
       </main>
 
-      <footer className="border-t border-neutral-800 p-4 relative">
-        {showSettings && (
-          <div className="absolute bottom-20 left-4 bg-neutral-900 p-4 rounded-xl shadow-xl z-10 text-sm space-y-3 w-64">
-            <div>
-              <label className="block mb-1">Température : {temperature}</label>
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.01}
-                value={temperature}
-                onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                className="w-full"
-              />
-            </div>
-            <div>
-              <label className="block mb-1">Top P : {topP}</label>
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.01}
-                value={topP}
-                onChange={(e) => setTopP(parseFloat(e.target.value))}
-                className="w-full"
-              />
-            </div>
-          </div>
-        )}
-
+      <footer className="border-t border-neutral-800 p-4">
         <form onSubmit={handleSubmit} className="flex flex-col gap-2 max-w-3xl mx-auto">
           {imagePreview && (
             <div className="flex items-center gap-2 text-xs text-white mb-1">
@@ -210,10 +180,6 @@ export default function Page() {
               onChange={handleImageUpload}
               className="hidden"
             />
-
-            <button type="button" onClick={() => setShowSettings(!showSettings)}>
-              <Settings size={18} className="text-white" />
-            </button>
 
             <input
               type="text"
