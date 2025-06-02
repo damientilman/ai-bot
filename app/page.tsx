@@ -16,7 +16,7 @@ export default function Page() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const suggestions = [
-    "Aide moi à construire une campagne"
+    "Aide moi à créer une campagne"
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
