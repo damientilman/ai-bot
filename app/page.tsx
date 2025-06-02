@@ -57,7 +57,7 @@ export default function Page() {
         {greeting && (
           <div className="text-center mt-12">
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-pink-500 bg-clip-text text-transparent">
-              Hello, Damien
+              Bienvenue sur Outbound Brain
             </h1>
             <div className="flex flex-wrap justify-center mt-6 gap-3">
               {suggestions.map((s, i) => (
