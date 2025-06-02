@@ -5,6 +5,8 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Mic, Send, Plus, Image } from "lucide-react";
 import Link from "next/link"; // Assure-toi que ce soit bien importé
+import { useRouter } from "next/navigation";
+const router = useRouter();
 
 export default function Page() {
   const [message, setMessage] = useState("");
@@ -70,9 +72,13 @@ export default function Page() {
   return (
     <div className="flex flex-col h-dvh bg-black text-white">
       <header className="flex items-center justify-between px-4 py-2 border-b border-neutral-800">
-        <Link href="/" className="font-semibold text-lg hover:underline cursor-pointer">
+        <button
+  onClick={() => router.refresh()}
+  className="font-semibold text-lg hover:underline cursor-pointer"
+>
   Outbound Brain
-</Link>
+</button>
+
         <span className="text-xs bg-neutral-800 px-2 py-1 rounded-full">GPT 4o</span>
       </header>
 
