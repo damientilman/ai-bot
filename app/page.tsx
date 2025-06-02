@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Mic, Send, Image as ImageIcon, X } from "lucide-react";
+import { Send, Image as ImageIcon, X } from "lucide-react";
 
 export default function Page() {
   const [message, setMessage] = useState("");
@@ -17,6 +17,7 @@ export default function Page() {
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const suggestions = ["Aide moi à créer une campagne"];
 
@@ -61,6 +62,9 @@ export default function Page() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await sendMessage();
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,6 +72,23 @@ export default function Page() {
     if (file) {
       setAttachedFile(file);
       setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  // Auto-resize textarea
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setMessage(e.target.value);
+    if (textareaRef.current) {
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  };
+
+  // Enter = send, Shift+Enter = newline
+  const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      if (message.trim()) handleSubmit(e as any);
     }
   };
 
@@ -165,7 +186,7 @@ export default function Page() {
             </div>
           )}
 
-          <div className="flex items-center gap-2 bg-[#40414f] rounded-xl px-4 py-3 shadow-md">
+          <div className="flex items-end gap-2 bg-[#40414f] rounded-xl px-4 py-3 shadow-md">
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
@@ -181,14 +202,16 @@ export default function Page() {
               className="hidden"
             />
 
-            <input
-              type="text"
-              className="flex-1 bg-transparent text-white placeholder-[#8e8ea0] text-base focus:outline-none px-2"
+            <textarea
+              ref={textareaRef}
+              className="flex-1 bg-transparent text-white placeholder-[#8e8ea0] text-base focus:outline-none px-2 resize-none max-h-40 min-h-[40px] overflow-y-auto"
               placeholder="Envoyer un message à Outbound Brain…"
               value={message}
-              onChange={(e) => setMessage(e.target.value)}
+              onChange={handleTextareaChange}
+              onKeyDown={handleTextareaKeyDown}
               disabled={loading}
               autoFocus
+              rows={1}
             />
 
             <button
