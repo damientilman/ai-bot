@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Mic, Send, Plus, Image } from "lucide-react";
+import Link from "next/link"; // Assure-toi que ce soit bien importé
 
 export default function Page() {
   const [message, setMessage] = useState("");
@@ -69,7 +70,9 @@ export default function Page() {
   return (
     <div className="flex flex-col h-dvh bg-black text-white">
       <header className="flex items-center justify-between px-4 py-2 border-b border-neutral-800">
-        <div className="font-semibold text-lg">Outbound Brain</div>
+        <Link href="/" className="font-semibold text-lg hover:underline cursor-pointer">
+  Outbound Brain
+</Link>
         <span className="text-xs bg-neutral-800 px-2 py-1 rounded-full">GPT 4o</span>
       </header>
 
