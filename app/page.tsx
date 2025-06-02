@@ -3,10 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Mic, Send, Plus, Image } from "lucide-react";
-import Link from "next/link"; // Assure-toi que ce soit bien importé
-import { useRouter } from "next/navigation";
-const router = useRouter();
+import { Mic, Send, Image } from "lucide-react";
 
 export default function Page() {
   const [message, setMessage] = useState("");
@@ -20,8 +17,8 @@ export default function Page() {
 
   const suggestions = ["Aide moi à créer une campagne"];
 
-  const sendMessage = async (newMessage: string) => {
-    const updatedHistory = [...history, { role: "user", content: newMessage }];
+  const sendMessage = async (userMessage: string) => {
+    const updatedHistory = [...history, { role: "user", content: userMessage }];
     setHistory(updatedHistory);
     setMessage("");
     setLoading(true);
@@ -73,12 +70,11 @@ export default function Page() {
     <div className="flex flex-col h-dvh bg-black text-white">
       <header className="flex items-center justify-between px-4 py-2 border-b border-neutral-800">
         <button
-  onClick={() => router.refresh()}
-  className="font-semibold text-lg hover:underline cursor-pointer"
->
-  Outbound Brain
-</button>
-
+          onClick={() => window.location.reload()}
+          className="font-semibold text-lg hover:underline cursor-pointer"
+        >
+          Outbound Brain
+        </button>
         <span className="text-xs bg-neutral-800 px-2 py-1 rounded-full">GPT 4o</span>
       </header>
 
@@ -144,9 +140,10 @@ export default function Page() {
               placeholder="Ask Outbound Brain..."
               value={message}
               onChange={(e) => setMessage(e.target.value)}
+              disabled={loading}
             />
             <Mic size={18} className="text-gray-400" />
-            <button type="submit">
+            <button type="submit" disabled={loading}>
               <Send size={18} className="text-white" />
             </button>
           </div>
