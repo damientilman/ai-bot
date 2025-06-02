@@ -15,14 +15,11 @@ export default function Page() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const suggestions = [
-    "Aide moi à créer une campagne"
-  ];
+  const suggestions = ["Aide moi à créer une campagne"];
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!message.trim()) return;
-    setHistory((prev) => [...prev, { role: "user", content: message }]);
+  const sendMessage = async (newMessage: string) => {
+    const updatedHistory = [...history, { role: "user", content: newMessage }];
+    setHistory(updatedHistory);
     setMessage("");
     setLoading(true);
     setGreeting(false);
@@ -31,7 +28,11 @@ export default function Page() {
       const res = await fetch("/api/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, temperature, top_p: topP })
+        body: JSON.stringify({
+          history: updatedHistory,
+          temperature,
+          top_p: topP
+        })
       });
       const data = await res.json();
       setHistory((prev) => [...prev, { role: "assistant", content: data.reply }]);
@@ -42,15 +43,27 @@ export default function Page() {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!message.trim()) return;
+    await sendMessage(message);
+  };
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setHistory((prev) => [...prev, { role: "user", content: `![image](${URL.createObjectURL(file)})` }]);
+      setHistory((prev) => [
+        ...prev,
+        { role: "user", content: `![image](${URL.createObjectURL(file)})` }
+      ]);
     }
   };
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth"
+    });
   }, [history]);
 
   return (
@@ -70,11 +83,7 @@ export default function Page() {
               {suggestions.map((s, i) => (
                 <button
                   key={i}
-                  onClick={() => {
-                    setMessage(s);
-                    setGreeting(false);
-                    setHistory((prev) => [...prev, { role: "user", content: s }]);
-                  }}
+                  onClick={() => sendMessage(s)}
                   className="bg-neutral-800 px-4 py-2 rounded-full text-sm hover:bg-neutral-700"
                 >
                   {s}
@@ -93,7 +102,9 @@ export default function Page() {
                   : "bg-neutral-800 text-white"
               }`}
             >
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {msg.content}
+              </ReactMarkdown>
             </div>
           </div>
         ))}
