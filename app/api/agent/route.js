@@ -10,7 +10,7 @@ export async function POST(req) {
     const { message, temperature, top_p } = body;
 
     const completion = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'o4-mini',
       messages: [
         {
           role: 'system',
