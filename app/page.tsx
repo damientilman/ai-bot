@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { Mic, Send, Image } from "lucide-react";
+import { Mic, Send, Image as ImageIcon, Settings, X } from "lucide-react";
 
 export default function Page() {
   const [message, setMessage] = useState("");
@@ -12,15 +12,24 @@ export default function Page() {
   const [temperature, setTemperature] = useState(0.7);
   const [topP, setTopP] = useState(0.95);
   const [greeting, setGreeting] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
+  const [attachedImage, setAttachedImage] = useState<string | null>(null);
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const suggestions = ["Aide moi à créer une campagne"];
 
-  const sendMessage = async (userMessage: string) => {
-    const updatedHistory = [...history, { role: "user", content: userMessage }];
+  const sendMessage = async (userMessage: string, image?: string) => {
+    let finalMessage = userMessage;
+    if (image) {
+      finalMessage += `\n\n![image](${image})`;
+    }
+
+    const updatedHistory = [...history, { role: "user", content: finalMessage }];
     setHistory(updatedHistory);
     setMessage("");
+    setAttachedImage(null);
     setLoading(true);
     setGreeting(false);
 
@@ -31,8 +40,8 @@ export default function Page() {
         body: JSON.stringify({
           history: updatedHistory,
           temperature,
-          top_p: topP
-        })
+          top_p: topP,
+        }),
       });
       const data = await res.json();
       setHistory((prev) => [...prev, { role: "assistant", content: data.reply }]);
@@ -45,24 +54,22 @@ export default function Page() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) return;
-    await sendMessage(message);
+    if (!message.trim() && !attachedImage) return;
+    await sendMessage(message, attachedImage ?? undefined);
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setHistory((prev) => [
-        ...prev,
-        { role: "user", content: `![image](${URL.createObjectURL(file)})` }
-      ]);
+      const previewUrl = URL.createObjectURL(file);
+      setAttachedImage(previewUrl);
     }
   };
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
       top: scrollRef.current.scrollHeight,
-      behavior: "smooth"
+      behavior: "smooth",
     });
   }, [history]);
 
@@ -121,11 +128,53 @@ export default function Page() {
         )}
       </main>
 
-      <footer className="border-t border-neutral-800 p-4">
+      <footer className="border-t border-neutral-800 p-4 relative">
+        {showSettings && (
+          <div className="absolute bottom-20 left-4 bg-neutral-900 p-4 rounded-xl shadow-xl z-10 text-sm space-y-3 w-64">
+            <div>
+              <label className="block mb-1">Température : {temperature}</label>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                value={temperature}
+                onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="block mb-1">Top P : {topP}</label>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                value={topP}
+                onChange={(e) => setTopP(parseFloat(e.target.value))}
+                className="w-full"
+              />
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="flex flex-col gap-2 max-w-3xl mx-auto">
+          {attachedImage && (
+            <div className="flex items-center gap-2 text-xs text-white mb-1">
+              <img src={attachedImage} alt="Aperçu" className="w-16 h-16 rounded object-cover" />
+              <button
+                type="button"
+                className="text-red-400 hover:text-red-600 flex items-center gap-1"
+                onClick={() => setAttachedImage(null)}
+              >
+                <X size={16} /> Supprimer l’image
+              </button>
+            </div>
+          )}
+
           <div className="flex items-center gap-2 bg-neutral-900 rounded-full px-4 py-2">
             <button type="button" onClick={() => fileInputRef.current?.click()}>
-              <Image size={18} className="text-white" />
+              <ImageIcon size={18} className="text-white" />
             </button>
             <input
               ref={fileInputRef}
@@ -134,6 +183,11 @@ export default function Page() {
               onChange={handleImageUpload}
               className="hidden"
             />
+
+            <button type="button" onClick={() => setShowSettings(!showSettings)}>
+              <Settings size={18} className="text-white" />
+            </button>
+
             <input
               type="text"
               className="flex-1 bg-transparent text-white placeholder-gray-500 text-sm focus:outline-none"
@@ -142,6 +196,7 @@ export default function Page() {
               onChange={(e) => setMessage(e.target.value)}
               disabled={loading}
             />
+
             <Mic size={18} className="text-gray-400" />
             <button type="submit" disabled={loading}>
               <Send size={18} className="text-white" />
