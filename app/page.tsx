@@ -1,8 +1,3 @@
-/*
-  This code will update the existing Page.tsx to mimic the ChatGPT UI as closely as possible
-  with centered chat bubbles, fade-in animations, smooth scroll, and proper responsiveness.
-*/
-
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
@@ -25,26 +20,10 @@ export default function Page() {
 
   const suggestions = ["Aide moi à créer une campagne"];
 
-  const getBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
-
   const sendMessage = async () => {
-    if (!message.trim() && !attachedFile) return;
+    if (!message.trim()) return;
 
-    const content: any[] = [];
-    if (message.trim()) content.push({ type: "text", text: message });
-    if (attachedFile) {
-      const base64 = await getBase64(attachedFile);
-      content.push({ type: "image_url", image_url: { url: base64 } });
-    }
-
-    const userMessage = { role: "user", content };
+    const userMessage = { role: "user", content: message };
     const updatedHistory = [...history, userMessage];
     setHistory(updatedHistory);
     setMessage("");
@@ -126,15 +105,7 @@ export default function Page() {
                   : "bg-zinc-800 text-white"
               }`}
             >
-              {Array.isArray(msg.content)
-                ? msg.content.map((block: any, idx: number) =>
-                    block.type === "text" ? (
-                      <ReactMarkdown key={idx} remarkPlugins={[remarkGfm]}>{block.text}</ReactMarkdown>
-                    ) : (
-                      <img key={idx} src={block.image_url.url} alt="envoyée" className="mt-2 rounded" />
-                    )
-                  )
-                : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>}
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
             </div>
           </div>
         ))}
