@@ -183,17 +183,20 @@ export default function Page() {
       <button onClick={() => setShowSidebar(false)} className="text-sm">✕</button>
     </div>
     <ul className="p-4 space-y-2 text-sm">
-      {sessions.map((s, idx) => (
-        <li key={idx} className="truncate">
-          <button
-  onClick={() => loadSession(s.session_id)}
-  className="w-full text-left hover:underline"
->
-  {s.session_id}
-</button>
-
-        </li>
-      ))}
+      {Array.isArray(sessions) && sessions.length > 0 ? (
+  sessions.map((s, idx) => (
+    <li key={idx} className="truncate">
+      <button
+        onClick={() => loadSession(s.session_id)}
+        className="w-full text-left hover:underline"
+      >
+        {s.session_id}
+      </button>
+    </li>
+  ))
+) : (
+  <li className="text-gray-400 italic">Aucune session trouvée</li>
+)}
     </ul>
   </aside>
 )}
