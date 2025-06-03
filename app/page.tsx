@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { Menu } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -15,23 +17,45 @@ export default function Page() {
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [showSidebar, setShowSidebar] = useState(true);
+
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
+  const loadSession = async (sessionId: string) => {
+  try {
+    const res = await fetch(`/api/messages?session_id=${sessionId}`);
+    const data = await res.json();
+    setHistory(data);
+    setGreeting(false);
+  } catch (error) {
+    console.error("Erreur chargement session :", error);
+  }
+};
+
   const suggestions = ["Aide moi à créer une campagne"];
 
   const saveMessage = async (role: string, content: string) => {
-    try {
-      await fetch("/api/save-message", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role, content, session_id: "session-1234" }),
-      });
-    } catch (err) {
-      console.error("Erreur de sauvegarde message:", err);
+  try {
+    const res = await fetch("/api/save-message", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ role, content, session_id: "session-1234" }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) {
+      console.error("Erreur backend :", data.error || res.statusText);
+    } else {
+      console.log(`✅ Message ${role} enregistré :`, content);
     }
-  };
+  } catch (err) {
+    console.error("Erreur de sauvegarde message:", err);
+  }
+};
 
   const sendMessage = async () => {
     if (!message.trim()) return;
@@ -106,6 +130,20 @@ export default function Page() {
   };
 
   useEffect(() => {
+  const fetchSessions = async () => {
+    try {
+      const res = await fetch("/api/sessions");
+      const data = await res.json();
+      setSessions(data);
+    } catch (error) {
+      console.error("Erreur chargement sessions :", error);
+    }
+  };
+
+  fetchSessions();
+}, []);
+  
+  useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [history, loading]);
 
@@ -113,11 +151,53 @@ export default function Page() {
     <div className="flex flex-col h-screen bg-[#343541] text-white">
       {/* Header */}
       <header className="flex justify-between items-center px-6 py-4 border-b border-[#202123] bg-[#202123]">
-        <h1 className="text-xl font-semibold tracking-tight">Outbound Brain</h1>
-        <span className="text-xs bg-[#444654] px-3 py-1 rounded-full">GPT 4o</span>
-      </header>
+  <div className="flex items-center gap-4">
+    <button onClick={() => setShowSidebar(true)} className="hover:bg-[#444654] p-1 rounded">
+      <Menu size={20} />
+    </button>
+    <button
+  onClick={() => {
+    setHistory([]);
+    setGreeting(true);
+    setMessage("");
+  }}
+  className="text-xl font-semibold tracking-tight focus:outline-none hover:opacity-80"
+>
+  Outbound Brain
+</button>
+
+  </div>
+  <span className="text-xs bg-green-600 text-white px-3 py-1 rounded-full">
+  Up to date
+</span>
+
+</header>
+
 
       {/* Chat area */}
+
+    {showSidebar && (
+  <aside className="fixed top-0 left-0 h-full w-64 bg-[#202123] text-white border-r border-[#2a2b32] overflow-y-auto z-20">
+    <div className="p-4 border-b border-[#2a2b32] flex justify-between items-center">
+      <h2 className="text-lg font-semibold">Conversations</h2>
+      <button onClick={() => setShowSidebar(false)} className="text-sm">✕</button>
+    </div>
+    <ul className="p-4 space-y-2 text-sm">
+      {sessions.map((s, idx) => (
+        <li key={idx} className="truncate">
+          <button
+  onClick={() => loadSession(s.session_id)}
+  className="w-full text-left hover:underline"
+>
+  {s.session_id}
+</button>
+
+        </li>
+      ))}
+    </ul>
+  </aside>
+)}
+
       <main
         ref={scrollRef}
         className="flex-1 overflow-y-auto px-0 py-0 bg-[#343541] flex flex-col"
