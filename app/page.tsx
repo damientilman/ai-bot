@@ -228,7 +228,7 @@ export default function Page() {
           </div>
         </form>
         <div className="text-center text-xs text-[#8e8ea0] mt-4">
-          Outbound Brain propulsé par GPT-4o — Inspiré de ChatGPT
+          Outbound Brain — propulsé pour Newpharma.
         </div>
       </footer>
     </div>
