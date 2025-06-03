@@ -21,6 +21,18 @@ export default function Page() {
 
   const suggestions = ["Aide moi à créer une campagne"];
 
+  const saveMessage = async (role: string, content: string) => {
+    try {
+      await fetch("/api/save-message", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role, content, session_id: "session-1234" }),
+      });
+    } catch (err) {
+      console.error("Erreur de sauvegarde message:", err);
+    }
+  };
+
   const sendMessage = async () => {
     if (!message.trim()) return;
 
@@ -32,6 +44,8 @@ export default function Page() {
     setImagePreview(null);
     setLoading(true);
     setGreeting(false);
+
+    await saveMessage("user", message);
 
     try {
       const res = await fetch("/api/agent", {
@@ -52,6 +66,7 @@ export default function Page() {
 
       const data = await res.json();
       setHistory((prev) => [...prev, { role: "assistant", content: data.reply }]);
+      await saveMessage("assistant", data.reply);
     } catch (err) {
       console.error("Erreur:", err);
     } finally {
@@ -75,7 +90,6 @@ export default function Page() {
     }
   };
 
-  // Auto-resize textarea
   const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setMessage(e.target.value);
     if (textareaRef.current) {
@@ -84,7 +98,6 @@ export default function Page() {
     }
   };
 
-  // Enter = send, Shift+Enter = newline
   const handleTextareaKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
