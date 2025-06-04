@@ -87,19 +87,23 @@ export default function Page() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-700 via-purple-700 to-red-600">
       <div className="w-full max-w-6xl bg-zinc-900 bg-opacity-70 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden text-white">
         <header className="p-6 border-b border-zinc-800 flex items-center justify-between">
-          <h1 className="text-xl font-semibold">Outbound Brain</h1>
-          <span className="text-xs bg-zinc-700 px-3 py-1 rounded-full">GPT 4o</span>
+          <h1 className="text-xl font-semibold">Outbound GPT</h1>
+          <span className="text-xs bg-zinc-700 px-3 py-1 rounded-full">Latest : June 04</span>
         </header>
 
         <main ref={scrollRef} className="h-[60vh] overflow-y-auto p-6 space-y-4">
           {history.map((msg, i) => (
-            <div key={i} className="flex justify-center animate-fade-in">
+            <div
+              key={i}
+              className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-fade-in`}
+            >
               <div
-                className={`w-full mmax-w-5xl px-4 py-3 rounded-xl text-sm leading-relaxed shadow-md whitespace-pre-wrap ${
+                className={`max-w-md p-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
                   msg.role === "user"
-                    ? "bg-emerald-600 text-white self-end"
-                    : "bg-zinc-800 text-white"
+                    ? "bg-emerald-500 text-white"
+                    : "bg-blue-600 text-white"
                 }`}
+                style={{ margin: "4px" }}
               >
                 {Array.isArray(msg.content)
                   ? msg.content.map((block: any, idx: number) =>
@@ -116,14 +120,20 @@ export default function Page() {
                         />
                       )
                     )
-                  : <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>}
+                  : (
+                    <div className="prose prose-sm prose-invert text-white max-w-none">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
+                  )}
               </div>
             </div>
           ))}
 
           {loading && (
             <div className="text-center text-sm text-zinc-400 animate-pulse">
-              OutboundGPT rédige…
+              OutboundGPT est en train d'écrire...
             </div>
           )}
         </main>
