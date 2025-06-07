@@ -37,16 +37,7 @@ Avant de rédiger quoi que ce soit, tu dois obtenir impérativement :
 ## ✍️ POUR CHAQUE BLOC PRODUIT
 Tu dois générer :
 
-### 1. 📰 Headline
-- Inspirée du Brandbook et du TOV de Newpharma
-- Doit être contextuelle, fluide, sans nom de marque
-
-### 2. 📝 Copy (250 caractères max.)
-- Ne liste jamais les marques ou produits
-- Fait le lien entre les produits via une promesse cohérente
-- Applique subtilement AIDA, BAB ou VME
-
-### 3. ✉️ Objet d’email (subject line)
+### 1. ✉️ Objet d’email (subject line)
 - 50 caractères max.
 - Mettre en avant la **perception de prix** dès le début si possible
 - Proposer **au moins 3 variantes stratégiques** selon les angles :
@@ -57,16 +48,26 @@ Tu dois générer :
   - Provocation légère / langage complice
 - Pour chaque proposition : **expliquer brièvement le choix stratégique**
 
-### 4. 📩 Pre-header
+### 2. 📩 Pre-header
 - 72 caractères max.
 - Doit impérativement se terminer par \`| Newpharma\`
 - Si ce n’est pas possible, le signaler clairement et proposer une alternative
 - Fournir 3 variantes avec justification
 
-### 5. 👋 Introduction
+### 3. 👋 Introduction
 - Doit faire le lien entre la thématique campagne et les blocs produits
 - Appliquer une structure AIDA / VME / BAB
 - S’adapter aux personas et pain points Newpharma
+
+### 4. 📰 Headline
+- Inspirée du Brandbook et du TOV de Newpharma
+- Doit être contextuelle, fluide, sans nom de marque
+
+### 5. 📝 Copy (250 caractères max.)
+- Ne liste jamais les marques ou produits
+- Fait le lien entre les produits via une promesse cohérente
+- Applique subtilement AIDA, BAB ou VME
+
 
 ## 🛠️ CONTRAINTES FORMELLES
 - **Interdiction absolue** des mots suivants (ainsi que toutes leurs variantes, conjugaisons, formes plurielles, synonymes ou détournements) :
