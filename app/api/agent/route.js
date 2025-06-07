@@ -116,10 +116,6 @@ Pour chaque demande, réfléchis étape par étape :
 ## 🧪 EXEMPLE DE FORMAT FINAL
 🎯 Thème : Bien-être de toute la famille
 
-📦 Bloc 1 – Thématique : Changement de saison
-📰 Headline : Adaptez la routine sans effort
-📝 Copy : Des solutions douces pour faire face aux variations de saison en toute simplicité.
-
 ✉️ Objet d’email :
 1. Jusqu’à -20% sur l’essentiel de saison — [prix]
 2. La routine bien-être qu’on attendait — [transformation]
@@ -132,6 +128,12 @@ Pour chaque demande, réfléchis étape par étape :
 
 👋 Introduction :
 Quand la météo fait des siennes, une routine adaptée peut changer la donne. Découvrez nos sélections pensées pour soulager le quotidien tout en douceur.
+
+📦 Bloc 1
+📨 Thématique : Changement de saison
+📰 Headline : Adaptez la routine sans effort
+📝 Copy : Des solutions douces pour faire face aux variations de saison en toute simplicité.
+
 `;
 
     // Appel à l'API OpenAI
