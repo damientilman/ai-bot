@@ -14,10 +14,22 @@ export default function PageContent() {
   const [topP] = useState(0.95);
   const [attachedFile, setAttachedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [introFramework, setIntroFramework] = useState("");
+  const lastRequestRef = useRef<any>(null);
+  const [urls, setUrls] = useState(Array(18).fill(""));
+
+  const [expandedBlocks, setExpandedBlocks] = useState(Array(6).fill(true));
 
   const [displayedText, setDisplayedText] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [formVisible, setFormVisible] = useState(false);
+
+  const resetConversation = () => {
+    setHistory([]);
+    lastRequestRef.current = null;
+  };
 
   const getBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -46,11 +58,22 @@ export default function PageContent() {
     setImagePreview(null);
     setLoading(true);
 
+    // Préparer la requête pour stockage/réutilisation
+    const reqBody = {
+      history: updatedHistory,
+      temperature,
+      top_p: topP,
+      introFramework,
+      theme: message,
+      urls,
+    };
+    lastRequestRef.current = reqBody;
+
     try {
       const res = await fetch("/api/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ history: updatedHistory, temperature, top_p: topP }),
+        body: JSON.stringify(reqBody),
       });
 
       if (!res.ok) {
@@ -63,6 +86,49 @@ export default function PageContent() {
       setHistory((prev) => [...prev, { role: "assistant", content: data.reply }]);
     } catch (err) {
       console.error("Erreur dans sendMessage :", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Nouvelle fonction handleRefresh selon la demande
+  const handleRefresh = async () => {
+    const lastReq = lastRequestRef.current;
+    if (!lastReq) return;
+
+    // Supprimer le dernier message de l'assistant dans une copie propre
+    const cleanedHistory = [...lastReq.history];
+    const lastAssistantIndex = cleanedHistory.map((msg) => msg.role).lastIndexOf("assistant");
+    if (lastAssistantIndex !== -1) {
+      cleanedHistory.splice(lastAssistantIndex, 1);
+    }
+
+    const refreshedReq = {
+      ...lastReq,
+      history: cleanedHistory,
+    };
+
+    lastRequestRef.current = refreshedReq; // mettre à jour la référence pour les futurs refresh
+    setHistory(cleanedHistory); // mettre à jour le state visible
+    setLoading(true);
+
+    try {
+      const res = await fetch("/api/agent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(refreshedReq),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("Erreur côté API (refresh) :", errorText);
+        throw new Error("Erreur côté agent : " + res.status);
+      }
+
+      const data = await res.json();
+      setHistory((prev) => [...prev, { role: "assistant", content: data.reply }]);
+    } catch (err) {
+      console.error("Erreur dans handleRefresh :", err);
     } finally {
       setLoading(false);
     }
@@ -82,98 +148,81 @@ export default function PageContent() {
   };
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [history]);
+    const el = scrollRef.current;
+    if (!el) return;
 
-  // Typewriter effect for the last assistant message
-  useEffect(() => {
-    // Find last assistant message
-    const lastAssistantIndex = history.map((msg) => msg.role).lastIndexOf("assistant");
-    if (lastAssistantIndex === -1) {
-      setDisplayedText("");
-      return;
-    }
-    const lastAssistantMessage = history[lastAssistantIndex];
-    if (!lastAssistantMessage) return;
+    requestAnimationFrame(() => {
+      el.scrollTop = el.scrollHeight;
+    });
+  }, [displayedText]);
 
-    // Compose full text from content array or string
-    let fullText = "";
-    if (Array.isArray(lastAssistantMessage.content)) {
-      fullText = lastAssistantMessage.content
-        .map((block: any) => (block.type === "text" ? block.text : ""))
-        .join("\n");
-    } else if (typeof lastAssistantMessage.content === "string") {
-      fullText = lastAssistantMessage.content;
-    } else {
-      fullText = "";
-    }
-
-    let currentIndex = 0;
-    setDisplayedText("");
-
-    if (fullText.length === 0) return;
-
-    const interval = setInterval(() => {
-      currentIndex++;
-      setDisplayedText(fullText.slice(0, currentIndex));
-      if (currentIndex === fullText.length) {
-        clearInterval(interval);
-      }
-    }, 20);
-
-    return () => clearInterval(interval);
-  }, [history]);
+  // Le useEffect pour l'effet machine à écrire est supprimé pour désactiver l'effet
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-700 via-purple-700 to-red-600">
       <style>{`
         .bubble-user {
-          background-color: #34D399;
-          color: white;
+          background-color: #e5e7eb;
+          color: black;
           border-radius: 1rem;
-          padding: 5px 10px;
-          margin: 6px 0;
+          padding: 15px;
+          margin: 20px 0;
           align-self: flex-end;
-          max-width: 70%;
+          max-width: 900px;
+          width: fit-content;
           white-space: pre-wrap;
           word-wrap: break-word;
           line-height: 1.35;
         }
         .bubble-assistant {
-          background-color: #3B82F6;
+          background-color: #1f2937;
           color: white;
           border-radius: 1rem;
-          padding: 5px 10px;
-          margin: 6px 0;
+          padding: 30px;
+          margin: 20px 0;
           align-self: flex-start;
-          max-width: 70%;
+          max-width: 80vw;
+          width: fit-content;
           white-space: pre-wrap;
           word-wrap: break-word;
           line-height: 1.35;
         }
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-in-out;
+        }
+        /* Fade-in/fade-out pour le menu */
+        .fade-enter {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        .fade-enter-active {
+          opacity: 1;
+          transform: translateY(0);
+          transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        .fade-exit {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        .fade-exit-active {
+          opacity: 0;
+          transform: translateY(20px);
+          transition: opacity 0.4s ease, transform 0.4s ease;
+        }
       `}</style>
-      <div className="w-full max-w-7xl h-[85vh] bg-zinc-900 bg-opacity-70 backdrop-blur-md rounded-3xl shadow-2xl overflow-hidden text-white flex flex-col">
-        <header className="p-6 border-b border-zinc-800 flex items-center justify-between">
-          <h1 className="text-xl font-semibold">Outbound GPT</h1>
-          <span className="text-xs bg-zinc-700 px-3 py-1 rounded-full">Latest : June 04</span>
-        </header>
+      <div className="w-full overflow-hidden text-white flex flex-col">
 
         <main
           ref={scrollRef}
-          className="flex-1 overflow-y-auto px-8 py-6 space-y-3 flex flex-col"
+          className="flex-1 overflow-y-auto px-8 py-6 pb-10 space-y-3 flex flex-col items-center"
         >
           {history.length === 0 && !loading && (
-            <div className="text-center mb-6">
-              <h2 className="text-3xl font-bold text-white mb-4">Outbound GPT</h2>
-              <button
-                onClick={() => {
-                  setMessage("Démarrons une campagne");
-                  sendMessage();
-                }}
-                className="bg-zinc-800 text-white px-6 py-3 rounded-xl hover:bg-zinc-700 transition"
-              >
-                Démarrons une campagne
-              </button>
+            <div className="mb-6 text-center">
+              <h2 className="text-3xl font-bold text-white mb-4">OutboundGPT</h2>
             </div>
           )}
           {history.map((msg, i) => {
@@ -184,9 +233,7 @@ export default function PageContent() {
             return (
               <div
                 key={i}
-                className={`flex ${
-                  msg.role === "user" ? "justify-end" : "justify-start"
-                } animate-fade-in`}
+                className={`w-full flex justify-center animate-fade-in`}
               >
                 <div
                   className={`${
@@ -195,18 +242,16 @@ export default function PageContent() {
                   style={{ margin: "6px 0" }}
                 >
                   <div className="prose prose-sm prose-invert max-w-none leading-tight">
-                    {msg.role === "assistant" && isLastAssistantMessage ? (
+                    {msg.role === "assistant" ? (
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {displayedText}
+                        {Array.isArray(msg.content)
+                          ? msg.content
+                              .map((block: any) =>
+                                block.type === "text" ? block.text : ""
+                              )
+                              .join("\n")
+                          : msg.content}
                       </ReactMarkdown>
-                    ) : msg.role === "assistant" ? (
-                      Array.isArray(msg.content)
-                        ? msg.content
-                            .map((block: any) =>
-                              block.type === "text" ? block.text : ""
-                            )
-                            .join("\n")
-                        : msg.content
                     ) : (
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {Array.isArray(msg.content)
@@ -231,30 +276,106 @@ export default function PageContent() {
           )}
         </main>
 
-        <footer className="p-4 border-t border-zinc-800 bg-zinc-900">
-          <form onSubmit={handleSubmit} className="flex items-center gap-3">
-            <textarea
-              className="flex-1 bg-zinc-800 rounded-xl px-4 py-2 text-sm placeholder-zinc-400 focus:outline-none"
-              placeholder="Écris ta question ici…"
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              style={{ height: "80px", overflow: "auto" }}
-              disabled={loading}
-              rows={1}
-              onKeyDown={(e) => {
-                if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-                  e.preventDefault();
-                  handleSubmit(e);
-                }
-              }}
-            />
-            <button
-              type="submit"
-              className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-full px-4 py-2 text-sm"
-              disabled={loading}
-            >
-              Envoyer
-            </button>
+        {/* Floating Toggle Button: Always visible */}
+        <div className="fixed bottom-6 right-6 z-50">
+          <button
+            className="bg-zinc-800 text-white rounded-full p-4 shadow-lg hover:bg-zinc-700 transition text-xl"
+            onClick={() => setFormVisible((prev) => !prev)}
+          >
+            <span className={formVisible ? "text-green-400" : ""}>
+              {formVisible ? "✖️" : "💬"}
+            </span>
+          </button>
+        </div>
+
+        {/* Footer menu: always mounted, fade in/out */}
+        <footer
+          className={`fixed top-0 right-0 h-full w-[800px] backdrop-blur-lg rounded-l-3xl p-6 shadow-xl z-40 text-black transition-all duration-500 ${
+            formVisible
+              ? "opacity-100 translate-x-0 pointer-events-auto"
+              : "opacity-0 translate-x-full pointer-events-none"
+          } bg-zinc-900`}
+        >
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-4">
+
+            <div>
+              <label className="block mb-1 font-semibold text-white">Thématique de la campagne</label>
+              <input
+                type="text"
+                className="w-full bg-zinc-800 text-white rounded-xl px-4 py-2 placeholder-zinc-400 focus:outline-none"
+                placeholder="Ex. : Promotion d'été pour les solaires"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                disabled={loading}
+              />
+            </div>
+
+            <h3 className="text-lg font-semibold text-white mt-2">Produits</h3>
+            {Array.from({ length: 6 }).map((_, blockIdx) => (
+              <div key={blockIdx} className="border border-zinc-700 rounded-xl mb-4 overflow-hidden">
+                <button
+                  type="button"
+                  className="w-full flex justify-between items-center px-4 py-3 bg-zinc-800 text-white font-semibold hover:bg-zinc-700"
+                  onClick={() =>
+                    setExpandedBlocks((prev) =>
+                      prev.map((val, i) => (i === blockIdx ? !val : val))
+                    )
+                  }
+                >
+                  <span>Bloc {blockIdx + 1}</span>
+                  <span>{expandedBlocks[blockIdx] ? "▲" : "▼"}</span>
+                </button>
+                {expandedBlocks[blockIdx] && (
+                  <div className="flex flex-col gap-4 p-4">
+                    {Array.from({ length: 3 }).map((_, i) => {
+                      const globalIdx = blockIdx * 3 + i;
+                      return (
+                        <div key={globalIdx}>
+                          <label className="block mb-1 font-semibold text-white">URL</label>
+                          <input
+                            type="url"
+                            value={urls[globalIdx]}
+                            onChange={(e) => {
+                              const updated = [...urls];
+                              updated[globalIdx] = e.target.value;
+                              setUrls(updated);
+                            }}
+                            placeholder="https://newpharma.be/..."
+                            className="w-full bg-zinc-800 text-white rounded-xl px-4 py-2 placeholder-zinc-400 focus:outline-none"
+                            disabled={loading}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            ))}
+
+            <div className="flex justify-center gap-4 mt-6">
+              <button
+                type="button"
+                className="bg-zinc-300 hover:bg-zinc-200 text-black rounded-full px-6 py-2 text-sm"
+                onClick={handleRefresh}
+                disabled={loading}
+              >
+                Actualiser
+              </button>
+              <button
+                type="submit"
+                className="bg-zinc-700 hover:bg-zinc-600 text-white rounded-full px-6 py-2 text-sm"
+                disabled={loading}
+              >
+                Générer
+              </button>
+              <button
+                type="button"
+                className="bg-zinc-300 hover:bg-zinc-200 text-black rounded-full px-6 py-2 text-sm"
+                onClick={resetConversation}
+              >
+                Réinitialisation
+              </button>
+            </div>
           </form>
         </footer>
       </div>
