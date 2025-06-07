@@ -23,11 +23,7 @@ Regenerate and reset buttons for quick iteration
 **How It Works**	
 1.	Fill in the campaign theme and product URLs via the sidebar
 2.	Click “Generate” to send your input to the backend
-3.	OutboundGPT:
-	•	Visits each URL
-	•	Extracts product benefits
-	•	Synthesizes key takeaways
-	•	Writes a compelling, structured intro based on AIDA
+3.	OutboundGPT: Visits each URL, extracts product benefits, synthesizes key takeaways and writes a compelling, structured intro based on the AIDA copywriting framework.
 4.	Review, refresh, or reset content as needed
 
 ———————
