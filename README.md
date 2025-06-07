@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+OutboundGPT is a standalone AI assistant designed to accelerate outbound marketing campaign creation.
 
-## Getting Started
+It acts as a digital marketing copywriter, generating high-quality, structured, and persuasive content based on the campaign theme and product URLs provided by the user.
 
-First, run the development server:
+Marketing teams—especially in regulated industries—often face bottlenecks when creating campaign content from scratch. OutboundGPT helps solve this by:
+	•	Generating structured copy using proven frameworks (e.g. AIDA)
+	•	Extracting and synthesizing product benefits from live URLs
+	•	Producing multilingual, tone-compliant content
+	•	Automating repetitive writing tasks with consistent quality
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Key Features
+	•	Up to 18 product URLs accepted and analyzed
+	•	Extracts benefits from each product page
+	•	Generates a benefit summary across all products
+	•	Writes an AIDA-style introduction based on extracted insights
+	•	Supports file upload, image preview, and conversational memory
+	•	Clean and responsive chat UI
+	•	Right-side panel for input (campaign theme + product URLs)
+	•	Regenerate and reset buttons for quick iteration
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+How It Works
+	1.	Fill in the campaign theme and product URLs via the sidebar
+	2.	Click “Generate” to send your input to the backend
+	3.	OutboundGPT:
+	•	Visits each URL
+	•	Extracts product benefits
+	•	Synthesizes key takeaways
+	•	Writes a compelling, structured intro based on AIDA
+	4.	Review, refresh, or reset content as needed
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Changelog – Version 2.0
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Date: June 7, 2025
+Status: Stable Release
 
-## Learn More
+🔧 Major Updates
+	•	Migrated from modal menu to right-side panel layout
+	•	Added support for up to 18 product URLs (grouped into 6 expandable blocks)
+	•	Implemented automatic URL parsing + benefit extraction logic (via route.js)
+	•	Agent now creates a synthesized benefit summary and injects it into AIDA intro
 
-To learn more about Next.js, take a look at the following resources:
+💬 Chat Interface Improvements
+	•	Fixed scroll issues during assistant output (no more page jumping)
+	•	Increased chat bubble width for improved readability
+	•	Adjusted padding and spacing between messages
+	•	Set default assistant response to show full message (no typing effect)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+🧪 Tools & Buttons
+	•	Added “Reset conversation” button
+	•	Updated button styling and order: Refresh / Generate / Reset
+	•	Sidebar toggle via floating button (bottom-right)
+	•	Refined visual hierarchy and spacing in sidebar inputs
